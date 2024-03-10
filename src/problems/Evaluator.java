@@ -44,6 +44,10 @@ public interface Evaluator<E> {
 	 *         solution.
 	 */
 	public abstract Double evaluateInsertionCost(E elem, Solution<E> sol);
+	 
+	public abstract boolean evaluateWeightCapacity(E elem, Solution<E> sol);
+	
+	public abstract Double solutionCost(Solution<E> sol);
 
 	/**
 	 * Evaluates the cost variation of removing an element into a solution

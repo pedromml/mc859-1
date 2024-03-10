@@ -29,11 +29,15 @@ public class QBF implements Evaluator<Integer> {
 	 * Dimension of the domain.
 	 */
 	public final Integer size;
+	
+	public Integer weightCapacity;
 
 	/**
 	 * The array of numbers representing the domain.
 	 */
 	public final Double[] variables;
+	
+	public Double[] weights;
 
 	/**
 	 * The matrix A of coefficients for the QBF f(x) = x'.A.x
@@ -258,6 +262,30 @@ public class QBF implements Evaluator<Integer> {
 
 		return sum;
 	}
+	
+	@Override
+	public boolean evaluateWeightCapacity(Integer elem, Solution<Integer> sol) {
+		Double currentWeight = solutionCost(sol);
+		
+		if(currentWeight + weights[elem] <= weightCapacity) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public Double solutionCost(Solution<Integer> sol) {
+		setVariables(sol);
+		Double totalWeight = 0.0;
+		for (int i = 0; i < size; i++) {
+			if(variables[i] == 1) {
+				totalWeight += weights[i];				
+			}
+		}
+		
+		return totalWeight;
+	}
 
 	/**
 	 * Responsible for setting the QBF function parameters by reading the
@@ -278,6 +306,15 @@ public class QBF implements Evaluator<Integer> {
 
 		stok.nextToken();
 		Integer _size = (int) stok.nval;
+		stok.nextToken();
+		weightCapacity = (int) stok.nval;
+		
+		weights = new Double[_size];
+		for (int i = 0; i < _size; i++) {
+			stok.nextToken();
+			weights[i] = stok.nval;
+		}
+		
 		A = new Double[_size][_size];
 
 		for (int i = 0; i < _size; i++) {

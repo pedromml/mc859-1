@@ -173,16 +173,20 @@ public abstract class AbstractGRASP<E> {
 			 */
 			for (E c : CL) {
 				Double deltaCost = ObjFunction.evaluateInsertionCost(c, sol);
-				if (deltaCost <= minCost + alpha * (maxCost - minCost)) {
+				boolean canAddElement = ObjFunction.evaluateWeightCapacity(c, sol);
+				if (deltaCost <= minCost + alpha * (maxCost - minCost) && canAddElement) {
 					RCL.add(c);
 				}
 			}
 
 			/* Choose a candidate randomly from the RCL */
-			int rndIndex = rng.nextInt(RCL.size());
-			E inCand = RCL.get(rndIndex);
-			CL.remove(inCand);
-			sol.add(inCand);
+			if(RCL.size() > 0) {
+				int rndIndex = rng.nextInt(RCL.size());
+				E inCand = RCL.get(rndIndex);
+				CL.remove(inCand);
+				sol.add(inCand);
+				sol.weight = ObjFunction.solutionCost(sol);
+			}
 			ObjFunction.evaluate(sol);
 			RCL.clear();
 
