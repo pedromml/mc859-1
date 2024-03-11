@@ -39,6 +39,11 @@ public abstract class AbstractGRASP<E> {
 	 * the GRASP greediness-randomness parameter
 	 */
 	protected Double alpha;
+	
+	/*
+	 * The search method to be used in the local search. 1 for first improving, 2 for best improving
+	 */
+	protected Integer searchMethod;
 
 	/**
 	 * the best (incumbent) solution cost
@@ -115,7 +120,9 @@ public abstract class AbstractGRASP<E> {
 	 * 
 	 * @return An local optimum solution.
 	 */
-	public abstract Solution<E> localSearch();
+	public abstract Solution<E> localSearchBestImproving();
+	
+	public abstract Solution<E> localSearchFirstImproving();
 
 	/**
 	 * Constructor for the AbstractGRASP class.
@@ -128,9 +135,10 @@ public abstract class AbstractGRASP<E> {
 	 * @param iterations
 	 *            The number of iterations which the GRASP will be executed.
 	 */
-	public AbstractGRASP(Evaluator<E> objFunction, Double alpha, Integer iterations) {
+	public AbstractGRASP(Evaluator<E> objFunction, Double alpha, Integer searchMethod, Integer iterations) {
 		this.ObjFunction = objFunction;
 		this.alpha = alpha;
+		this.searchMethod = searchMethod;
 		this.iterations = iterations;
 	}
 	
@@ -207,7 +215,11 @@ public abstract class AbstractGRASP<E> {
 		bestSol = createEmptySol();
 		for (int i = 0; i < iterations; i++) {
 			constructiveHeuristic();
-			localSearch();
+			if(searchMethod == 1) {
+				localSearchFirstImproving();
+			} else if(searchMethod == 2) {
+				localSearchBestImproving();
+			}
 			if (bestSol.cost > sol.cost) {
 				bestSol = new Solution<E>(sol);
 				if (verbose)

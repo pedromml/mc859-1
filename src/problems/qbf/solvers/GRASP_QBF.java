@@ -34,8 +34,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 	 * @throws IOException
 	 *             necessary for I/O operations.
 	 */
-	public GRASP_QBF(Double alpha, Integer iterations, String filename) throws IOException {
-		super(new QBF_Inverse(filename), alpha, iterations);
+	public GRASP_QBF(Double alpha, Integer searchMethod, Integer iterations, String filename) throws IOException {
+		super(new QBF_Inverse(filename), alpha, searchMethod, iterations);
 	}
 
 	/*
@@ -95,15 +95,66 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 		sol.cost = 0.0;
 		return sol;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
-	 * 
+	 * First-improving
 	 * The local search operator developed for the QBF objective function is
 	 * composed by the neighborhood moves Insertion, Removal and 2-Exchange.
 	 */
 	@Override
-	public Solution<Integer> localSearch() {
+	public Solution<Integer> localSearchFirstImproving() {
+
+		Double minDeltaCost;
+		Integer bestCandIn = null, bestCandOut = null;
+
+		do {
+			minDeltaCost = Double.POSITIVE_INFINITY;
+			updateCL();
+				
+			
+			// Evaluate exchanges
+			for (Integer candIn : CL) {
+				for (Integer candOut : sol) {
+					double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, sol);
+					if (deltaCost < minDeltaCost) {
+						minDeltaCost = deltaCost;
+						bestCandIn = candIn;
+						bestCandOut = candOut;
+						sol.add(bestCandIn);
+						CL.remove(bestCandIn);
+						sol.remove(bestCandOut);
+						CL.add(bestCandOut);
+						return null;
+					}
+				}
+			}
+			
+			// Evaluate removals
+			for (Integer candOut : sol) {
+				double deltaCost = ObjFunction.evaluateRemovalCost(candOut, sol);
+				if (deltaCost < minDeltaCost) {
+					minDeltaCost = deltaCost;
+					bestCandIn = null;
+					bestCandOut = candOut;
+					sol.remove(bestCandOut);
+					CL.add(bestCandOut);
+					return null;
+				}
+			}
+		} while (minDeltaCost < -Double.MIN_VALUE);
+
+		return null;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * Best-improving
+	 * The local search operator developed for the QBF objective function is
+	 * composed by the neighborhood moves Insertion, Removal and 2-Exchange.
+	 */
+	@Override
+	public Solution<Integer> localSearchBestImproving() {
 
 		Double minDeltaCost;
 		Integer bestCandIn = null, bestCandOut = null;
@@ -160,12 +211,19 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 
 	/**
 	 * A main method used for testing the GRASP metaheuristic.
+	 * @throws Exception 
 	 * 
 	 */
-	public static void main(String[] args) throws IOException {
-
+	public static void main(String[] args) throws Exception {
+		Double alpha = Double.valueOf(args[0]);
+		Integer searchMethod = Integer.valueOf(args[1]);
+		
+		if(alpha < 0 || alpha > 1 || searchMethod <= 0 || searchMethod > 2) {
+			throw new Exception("Invalid arguments");
+		}
+		
 		long startTime = System.currentTimeMillis();
-		GRASP_QBF grasp = new GRASP_QBF(0.05, 1000, "instances/kqbf/kqbf100");
+		GRASP_QBF grasp = new GRASP_QBF(alpha, searchMethod, 1000, "instances/kqbf/kqbf100");
 		Solution<Integer> bestSol = grasp.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
