@@ -47,6 +47,10 @@ public interface Evaluator<E> {
 	 
 	public abstract boolean evaluateWeightCapacity(E elem, Solution<E> sol);
 	
+	public abstract boolean evaluateWeightCapacityRemove(Integer elem, Solution<Integer> sol);
+	
+	public abstract boolean evaluateWeightCapacityExchange(Integer elemIn, Integer elemOut, Solution<Integer> sol);
+	
 	public abstract Double solutionCost(Solution<E> sol);
 
 	/**

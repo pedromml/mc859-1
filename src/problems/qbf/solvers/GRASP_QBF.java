@@ -1,6 +1,7 @@
 package problems.qbf.solvers;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import metaheuristics.grasp.AbstractGRASP;
@@ -34,8 +35,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 	 * @throws IOException
 	 *             necessary for I/O operations.
 	 */
-	public GRASP_QBF(Double alpha, Integer searchMethod, Integer iterations, String filename) throws IOException {
-		super(new QBF_Inverse(filename), alpha, searchMethod, iterations);
+	public GRASP_QBF(Double alpha, Integer searchMethod, Integer constHeu, Integer p, Integer iterations, String filename) throws IOException {
+		super(new QBF_Inverse(filename), alpha, searchMethod, constHeu, p, iterations);
 	}
 
 	/*
@@ -117,7 +118,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 			for (Integer candIn : CL) {
 				for (Integer candOut : sol) {
 					double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, sol);
-					if (deltaCost < minDeltaCost) {
+					boolean canAddElement = ObjFunction.evaluateWeightCapacityExchange(candIn, candOut, sol);
+					if (deltaCost < minDeltaCost && canAddElement) {
 						minDeltaCost = deltaCost;
 						bestCandIn = candIn;
 						bestCandOut = candOut;
@@ -133,7 +135,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 			// Evaluate removals
 			for (Integer candOut : sol) {
 				double deltaCost = ObjFunction.evaluateRemovalCost(candOut, sol);
-				if (deltaCost < minDeltaCost) {
+				boolean canAddElement = ObjFunction.evaluateWeightCapacityRemove(candOut, sol);
+				if (deltaCost < minDeltaCost && canAddElement) {
 					minDeltaCost = deltaCost;
 					bestCandIn = null;
 					bestCandOut = candOut;
@@ -166,7 +169,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 			// Evaluate insertions
 			for (Integer candIn : CL) {
 				double deltaCost = ObjFunction.evaluateInsertionCost(candIn, sol);
-				if (deltaCost < minDeltaCost) {
+				boolean canAddElement = ObjFunction.evaluateWeightCapacity(candIn, sol);
+				if (deltaCost < minDeltaCost && canAddElement) {
 					minDeltaCost = deltaCost;
 					bestCandIn = candIn;
 					bestCandOut = null;
@@ -175,7 +179,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 			// Evaluate removals
 			for (Integer candOut : sol) {
 				double deltaCost = ObjFunction.evaluateRemovalCost(candOut, sol);
-				if (deltaCost < minDeltaCost) {
+				boolean canAddElement = ObjFunction.evaluateWeightCapacityRemove(candOut, sol);
+				if (deltaCost < minDeltaCost && canAddElement) {
 					minDeltaCost = deltaCost;
 					bestCandIn = null;
 					bestCandOut = candOut;
@@ -185,7 +190,8 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 			for (Integer candIn : CL) {
 				for (Integer candOut : sol) {
 					double deltaCost = ObjFunction.evaluateExchangeCost(candIn, candOut, sol);
-					if (deltaCost < minDeltaCost) {
+					boolean canAddElement = ObjFunction.evaluateWeightCapacityExchange(candIn, candOut, sol);
+					if (deltaCost < minDeltaCost && canAddElement) {
 						minDeltaCost = deltaCost;
 						bestCandIn = candIn;
 						bestCandOut = candOut;
@@ -215,20 +221,36 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 	 * 
 	 */
 	public static void main(String[] args) throws Exception {
-		Double alpha = Double.valueOf(args[0]);
-		Integer searchMethod = Integer.valueOf(args[1]);
+		String instanceFile = args[0];
+		Double alpha = Double.valueOf(args[1]);
+		Integer searchMethod = Integer.valueOf(args[2]);
+		Integer constrHeu = Integer.valueOf(args[3]);
+		Integer p = 0;
+		if(constrHeu == 2) {
+			p = Integer.valueOf(args[4]);
+		}
 		
 		if(alpha < 0 || alpha > 1 || searchMethod <= 0 || searchMethod > 2) {
 			throw new Exception("Invalid arguments");
 		}
 		
 		long startTime = System.currentTimeMillis();
-		GRASP_QBF grasp = new GRASP_QBF(alpha, searchMethod, 1000, "instances/kqbf/kqbf100");
+		GRASP_QBF grasp = new GRASP_QBF(alpha, searchMethod, constrHeu, p, 1000, "instances/kqbf/kqbf" + instanceFile);
 		Solution<Integer> bestSol = grasp.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		System.out.println("Time = "+(double)totalTime/(double)1000+" seg");
+		
+		PrintWriter writer = new PrintWriter("output_kqbf" + instanceFile, "UTF-8");
+		for(String s : args) { 
+			writer.printf(s + " ");
+		}
+		writer.println();
+		writer.println(args);
+		writer.println("maxVal = " + bestSol);
+		writer.println("Time = "+(double)totalTime/(double)1000+" seg");
+		writer.close();
 
 	}
 

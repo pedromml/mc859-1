@@ -100,6 +100,7 @@ public class QBF implements Evaluator<Integer> {
 	public Double evaluate(Solution<Integer> sol) {
 
 		setVariables(sol);
+		sol.weight = solutionCost(sol);
 		return sol.cost = evaluateQBF();
 
 	}
@@ -268,6 +269,28 @@ public class QBF implements Evaluator<Integer> {
 		Double currentWeight = solutionCost(sol);
 		
 		if(currentWeight + weights[elem] <= weightCapacity) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public boolean evaluateWeightCapacityRemove(Integer elem, Solution<Integer> sol) {
+		Double currentWeight = solutionCost(sol);
+		
+		if(currentWeight - weights[elem] <= weightCapacity) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	public boolean evaluateWeightCapacityExchange(Integer elemIn, Integer elemOut, Solution<Integer> sol) {
+		Double currentWeight = solutionCost(sol);
+		
+		if(currentWeight + weights[elemIn] - weights[elemOut] <= weightCapacity) {
 			return true;
 		}
 		
