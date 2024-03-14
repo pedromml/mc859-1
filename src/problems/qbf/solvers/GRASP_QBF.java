@@ -222,9 +222,10 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 	 */
 	public static void main(String[] args) throws Exception {
 		String instanceFile = args[0];
-		Double alpha = Double.valueOf(args[1]);
-		Integer searchMethod = Integer.valueOf(args[2]);
-		Integer constrHeu = Integer.valueOf(args[3]);
+		Integer iterations = Integer.valueOf(args[1]);
+		Double alpha = Double.valueOf(args[2]);
+		Integer searchMethod = Integer.valueOf(args[3]);
+		Integer constrHeu = Integer.valueOf(args[4]);
 		Integer p = 0;
 		if(constrHeu == 2) {
 			p = Integer.valueOf(args[4]);
@@ -235,19 +236,21 @@ public class GRASP_QBF extends AbstractGRASP<Integer> {
 		}
 		
 		long startTime = System.currentTimeMillis();
-		GRASP_QBF grasp = new GRASP_QBF(alpha, searchMethod, constrHeu, p, 1000, "instances/kqbf/kqbf" + instanceFile);
+		GRASP_QBF grasp = new GRASP_QBF(alpha, searchMethod, constrHeu, p, iterations, "instances/kqbf/kqbf" + instanceFile);
 		Solution<Integer> bestSol = grasp.solve();
 		System.out.println("maxVal = " + bestSol);
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		System.out.println("Time = "+(double)totalTime/(double)1000+" seg");
 		
-		PrintWriter writer = new PrintWriter("output_kqbf" + instanceFile, "UTF-8");
+		String outputFileName = "";
 		for(String s : args) { 
-			writer.printf(s + " ");
+			outputFileName = outputFileName + s + "_";
+			
 		}
+		PrintWriter writer = new PrintWriter("output_kqbf" + instanceFile + outputFileName, "UTF-8");
+		writer.printf(outputFileName);
 		writer.println();
-		writer.println(args);
 		writer.println("maxVal = " + bestSol);
 		writer.println("Time = "+(double)totalTime/(double)1000+" seg");
 		writer.close();
